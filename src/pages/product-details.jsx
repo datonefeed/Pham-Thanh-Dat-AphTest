@@ -1,12 +1,13 @@
 import "swiper/css";
 import "swiper/css/pagination";
-import { Breadcrumb, Button, Col, Image, Row } from "antd";
+import { Breadcrumb, Button, Col, Image, Row, Spin } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Mousewheel, Pagination, Thumbs } from "swiper/modules";
 import defaultImage from "../assets/images/defaultImage.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { productService } from "../services/apiService";
 
 function ProductDetail() {
   const { url } = useParams();
@@ -14,6 +15,11 @@ function ProductDetail() {
   const swiperRef = useRef(null);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [direction, setDirection] = useState("vertical");
+  
+  // State
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const updateDirection = () => {
     setDirection(window.innerWidth < 768 ? "horizontal" : "vertical");
@@ -31,6 +37,30 @@ function ProductDetail() {
     window.scrollTo({ top: 0, left: 0 });
 
     /* VIẾT CODE CỦA BẠN VÀO ĐÂY */
+    const fetchProductData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch product details
+        const productData = await productService.getProductByUrl(url, "en");
+        setProduct(productData);
+        try {
+          const relatedData = await productService.getRelatedProducts("en", productData.id);
+          setRelatedProducts(relatedData);
+        } catch (error) {
+          console.log("Related products not available:", error);
+          setRelatedProducts([]);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (url) {
+      fetchProductData();
+    }
   }, [url]);
 
   const handleNext = () => {
@@ -69,10 +99,10 @@ function ProductDetail() {
                       ),
                     },
                     {
-                      title: "Packaging",
+                      title: "Products",
                     },
                     {
-                      title: <span className="active-bread">Food Wrap</span>,
+                      title: <span className="active-bread">{product?.prodName || "Loading..."}</span>,
                     },
                   ]}
                   id="breadcrumb"
@@ -84,6 +114,15 @@ function ProductDetail() {
       </section>
       <section className="snouting-daw section">
         <div className="section-content relative">
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "100px 0" }}>
+              <Spin size="large" />
+            </div>
+          ) : !product ? (
+            <div style={{ textAlign: "center", padding: "100px 0" }}>
+              <p>Product not found</p>
+            </div>
+          ) : (
           <div className="_1ghu">
             <div className="_6tdv">
               <div className="product-vertical-thumbnails">
@@ -100,30 +139,30 @@ function ProductDetail() {
                   onSwiper={setThumbsSwiper}
                   className="ThumbGallery GalleryArea"
                 >
-                  <SwiperSlide>
-                    <Image
-                      src="/images/website/product_1.png"
-                      alt="Product Thumb"
-                      fallback={defaultImage}
-                      preview={false}
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Image
-                      src="/images/website/product_2.png"
-                      alt=""
-                      fallback={defaultImage}
-                      preview={false}
-                    />
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Image
-                      src="/images/website/product_3.png"
-                      alt=""
-                      fallback={defaultImage}
-                      preview={false}
-                    />
-                  </SwiperSlide>
+                  {/* Render động gallery từ product.media */}
+                  {product.media && product.media.length > 0 ? (
+                    product.media.map((image, index) => (
+                      <SwiperSlide key={index}>
+                        <Image
+                          src={image}
+                          alt={`${product.prodName} ${index + 1}`}
+                          fallback={defaultImage}
+                          preview={false}
+                        />
+                      </SwiperSlide>
+                    ))
+                  ) : (
+                    <>
+                      <SwiperSlide>
+                        <Image
+                          src={product.thumb || "/images/website/product_1.png"}
+                          alt="Product Thumb"
+                          fallback={defaultImage}
+                          preview={false}
+                        />
+                      </SwiperSlide>
+                    </>
+                  )}
                 </Swiper>
                 <Image.PreviewGroup>
                   <Swiper
@@ -131,58 +170,58 @@ function ProductDetail() {
                     thumbs={{ swiper: thumbsSwiper }}
                     className="ProductGallery GalleryArea"
                   >
-                    <SwiperSlide>
-                      <Image
-                        src="/images/website/product_1.png"
-                        alt="Product Thumb"
-                        fallback={defaultImage}
-                        preview={false}
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src="/images/website/product_2.png"
-                        alt=""
-                        fallback={defaultImage}
-                        preview={false}
-                      />
-                    </SwiperSlide>
-                    <SwiperSlide>
-                      <Image
-                        src="/images/website/product_3.png"
-                        alt=""
-                        fallback={defaultImage}
-                        preview={false}
-                      />
-                    </SwiperSlide>
+
+                    {product.media && product.media.length > 0 ? (
+                      product.media.map((image, index) => (
+                        <SwiperSlide key={index}>
+                          <Image
+                            src={image}
+                            alt={`${product.prodName} ${index + 1}`}
+                            fallback={defaultImage}
+                            preview={false}
+                          />
+                        </SwiperSlide>
+                      ))
+                    ) : (
+                      <SwiperSlide>
+                        <Image
+                          src={product.thumb || "/images/website/product_1.png"}
+                          alt={product.prodName}
+                          fallback={defaultImage}
+                          preview={false}
+                        />
+                      </SwiperSlide>
+                    )}
                   </Swiper>
                 </Image.PreviewGroup>
               </div>
 
               <div className="_6hoq">
-                <Button
-                  style={{ textTransform: "none" }}
-                  type="link"
-                  className="_7lpb"
-                >
-                  <span>Download data sheet</span>
-                  <i className="fa-regular fa-arrow-right"></i>
-                </Button>
+                {product.dataSheet && (
+                  <Button
+                    style={{ textTransform: "none" }}
+                    type="link"
+                    className="_7lpb"
+                    href={product.dataSheet}
+                    target="_blank"
+                  >
+                    <span>Download data sheet</span>
+                    <i className="fa-regular fa-arrow-right"></i>
+                  </Button>
+                )}
               </div>
             </div>
             <div className="_5enz">
               <div className="product-info">
                 <h1 className="product-title product_title entry-title">
-                  Food Wrap
+                  {product.prodName}
                 </h1>
                 <div className="sku">
                   <strong>SKU: </strong>
-                  <span>036897488221-2</span>
+                  <span>{product.sku}</span>
                 </div>
                 <div className="description">
-                  100% compostable: made from PBAT compostable material, AnEco
-                  food wrap is capable of completely decomposing within 6-12
-                  months into humus, water, Co2.
+                  {product.shortDesc || product.description}
                 </div>
                 <div className="_6zrw">
                   <Link to="/contact-us" className="button button-gradient">
@@ -192,58 +231,19 @@ function ProductDetail() {
                     <span>Add to Basket</span>
                   </a>
                 </div>
-                <div className="contents widget-content">
-                  <h4 className="_9cfu">Performance Features:</h4>
-                  <div className="inner-content">
-                    <ul>
-                      <li>
-                        With outstanding features to other products on the
-                        market, AnEco compostable cling wrap is transparent,
-                        flexible with a sharp cutting bar, easy for consumers in
-                        food preservation.
-                      </li>
-                      <li>
-                        Convenient thumb opening allows for a safe, easy grasp
-                        on the film
-                      </li>
-                      <li>FDA Compliant</li>
-                      <li>CFIA Compliant</li>
-                      <li>Kosher Compliant</li>
-                    </ul>
+                {/* Render dynamic description hoặc giữ nguyên nội dung cũ */}
+                {product.description && (
+                  <div className="contents widget-content">
+                    <h4 className="_9cfu">Performance Features:</h4>
+                    <div className="inner-content" dangerouslySetInnerHTML={{ __html: product.description }} />
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
+          )}
         </div>
       </section>
-
-      {/* <section className="spinally-zee section">
-        <div className="section-content relative">
-          <div className="_7zow row">
-            <div className="_4cnm col large-12 medium-12 small-12 RemovePaddingBottom">
-              <div className="col-inner">
-                <div className="_4zte">
-                  <h2 className="_9orw">Specifications</h2>
-                  <Button
-                    style={{ textTransform: "none" }}
-                    type="link"
-                    className="_2oxj"
-                  >
-                    <span>Download data sheet</span>
-                    <i className="fa-regular fa-arrow-right"></i>
-                  </Button>
-                </div>
-              </div>
-            </div>
-            <div className="_5nyy col large-12 medium-12 small-12 RemovePaddingBottom">
-              <div className="col-inner">
-                <div className="wrapper-table"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section> */}
 
       <section className="xylomas-goad section">
         <div className="section-content relative">
@@ -269,13 +269,13 @@ function ProductDetail() {
               <Col span={24} className="_0lfn">
                 <Swiper
                   onSwiper={(swiper) => {
-                    swiperRef.current = swiper; // Gắn instance của Swiper vào ref
+                    swiperRef.current = swiper;
                   }}
                   modules={[Autoplay]}
                   spaceBetween={0}
                   slidesPerView={1}
                   autoplay={{ delay: 2500, disableOnInteraction: false }}
-                  loop={true}
+                  loop={relatedProducts.length > 4}
                   className="SliderProduct"
                   breakpoints={{
                     320: {
@@ -292,126 +292,31 @@ function ProductDetail() {
                     },
                   }}
                 >
-                  <SwiperSlide>
-                    <Link className="box_project block has-hover" to="">
-                      <div className="media_prj image-zoom">
-                        <Image
-                          src="/images/website/product-list_1.png"
-                          alt="Product Thumb"
-                          fallback={defaultImage}
-                          preview={false}
-                          className="_7omy"
-                        />
-                      </div>
-                      <div className="text_prj">
-                        <h4 className="textLine-2">Food Wrap</h4>
-                        <div className="_7yax">
-                          <strong>SKU&nbsp;</strong>
-                          <span>036897488221-2</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Link className="box_project block has-hover" to="">
-                      <div className="media_prj image-zoom">
-                        <Image
-                          src="/images/website/product-list_2.png"
-                          alt="Product Thumb"
-                          fallback={defaultImage}
-                          preview={false}
-                          className="_7omy"
-                        />
-                      </div>
-                      <div className="text_prj">
-                        <h4 className="textLine-2">Overlock Jumbo bag</h4>
-                        <div className="_7yax">
-                          <strong>SKU&nbsp;</strong>
-                          <span>036897488221-2</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Link className="box_project block has-hover" to="">
-                      <div className="media_prj image-zoom">
-                        <Image
-                          src="/images/website/product-list_3.png"
-                          alt="Product Thumb"
-                          fallback={defaultImage}
-                          preview={false}
-                          className="_7omy"
-                        />
-                      </div>
-                      <div className="text_prj">
-                        <h4 className="textLine-2">Food Wrap</h4>
-                        <div className="_7yax">
-                          <strong>SKU&nbsp;</strong>
-                          <span>036897488221-2</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Link className="box_project block has-hover" to="">
-                      <div className="media_prj image-zoom">
-                        <Image
-                          src="/images/website/product-list_4.png"
-                          alt="Product Thumb"
-                          fallback={defaultImage}
-                          preview={false}
-                          className="_7omy"
-                        />
-                      </div>
-                      <div className="text_prj">
-                        <h4 className="textLine-2">Overlock Jumbo bag</h4>
-                        <div className="_7yax">
-                          <strong>SKU&nbsp;</strong>
-                          <span>036897488221-2</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Link className="box_project block has-hover" to="">
-                      <div className="media_prj image-zoom">
-                        <Image
-                          src="/images/website/product-list_5.png"
-                          alt="Product Thumb"
-                          fallback={defaultImage}
-                          preview={false}
-                          className="_7omy"
-                        />
-                      </div>
-                      <div className="text_prj">
-                        <h4 className="textLine-2">Food Wrap</h4>
-                        <div className="_7yax">
-                          <strong>SKU&nbsp;</strong>
-                          <span>036897488221-2</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
-                  <SwiperSlide>
-                    <Link className="box_project block has-hover" to="">
-                      <div className="media_prj image-zoom">
-                        <Image
-                          src="/images/website/product-list_6.png"
-                          alt="Product Thumb"
-                          fallback={defaultImage}
-                          preview={false}
-                          className="_7omy"
-                        />
-                      </div>
-                      <div className="text_prj">
-                        <h4 className="textLine-2">Overlock Jumbo bag</h4>
-                        <div className="_7yax">
-                          <strong>SKU&nbsp;</strong>
-                          <span>036897488221-2</span>
-                        </div>
-                      </div>
-                    </Link>
-                  </SwiperSlide>
+                  {/* Render products*/}
+                  {relatedProducts.length > 0 ? (
+                    relatedProducts.map((relatedProduct) => (
+                      <SwiperSlide key={relatedProduct.id}>
+                        <Link className="box_project block has-hover" to={`/product/${relatedProduct.slug}`}>
+                          <div className="media_prj image-zoom">
+                            <Image
+                              src={relatedProduct.thumb}
+                              alt={relatedProduct.prodName}
+                              fallback={defaultImage}
+                              preview={false}
+                              className="_7omy"
+                            />
+                          </div>
+                          <div className="text_prj">
+                            <h4 className="textLine-2">{relatedProduct.prodName}</h4>
+                            <div className="_7yax">
+                              <strong>SKU&nbsp;</strong>
+                              <span>{relatedProduct.sku}</span>
+                            </div>
+                          </div>
+                        </Link>
+                      </SwiperSlide>
+                    ))
+                  ) : null}
                 </Swiper>
               </Col>
             </Row>
