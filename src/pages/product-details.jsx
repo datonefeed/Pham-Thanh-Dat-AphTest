@@ -1,6 +1,6 @@
 import "swiper/css";
 import "swiper/css/pagination";
-import { Breadcrumb, Button, Col, Image, Row, Spin } from "antd";
+import { Breadcrumb, Col, Image, Row } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -8,6 +8,8 @@ import { Autoplay, Mousewheel, Pagination, Thumbs } from "swiper/modules";
 import defaultImage from "../assets/images/defaultImage.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { productService } from "../services/apiService";
+import Button from "../components/atoms/Button";
+import LoadingSpinner from "../components/atoms/LoadingSpinner";
 
 function ProductDetail() {
   const { url } = useParams();
@@ -115,15 +117,15 @@ function ProductDetail() {
       <section className="snouting-daw section">
         <div className="section-content relative">
           {loading ? (
-            <div style={{ textAlign: "center", padding: "100px 0" }}>
-              <Spin size="large" />
-            </div>
+            <LoadingSpinner />
           ) : !product ? (
             <div style={{ textAlign: "center", padding: "100px 0" }}>
               <p>Product not found</p>
             </div>
           ) : (
           <div className="_1ghu">
+            <Row gutter={60}>
+              <Col span={12}>
             <div className="_6tdv">
               <div className="product-vertical-thumbnails">
                 <Swiper
@@ -211,35 +213,32 @@ function ProductDetail() {
                 )}
               </div>
             </div>
+              </Col>
+              <Col span={12}>
             <div className="_5enz">
               <div className="product-info">
-                <h1 className="product-title product_title entry-title">
+                <h1 className="product-title">
                   {product.prodName}
                 </h1>
-                <div className="sku">
-                  <strong>SKU: </strong>
-                  <span>{product.sku}</span>
+                <div className="sku-line">
+                  <strong>SKU:</strong> <span>{product.sku}</span>
                 </div>
-                <div className="description">
+                <div className="product-description">
                   {product.shortDesc || product.description}
                 </div>
-                <div className="_6zrw">
-                  <Link to="/contact-us" className="button button-gradient">
-                    <span>Request Quote</span>
-                  </Link>
-                  <a href="#" className="button button-outline-green">
-                    <span>Add to Basket</span>
-                  </a>
+                <div className="action-buttons">
+                  <Button variant="gradient" to="/contact-us">
+                    REQUEST QUOTE
+                  </Button>
+                  <Button variant="outline-green" href="#">
+                    ADD TO BASKET
+                  </Button>
                 </div>
-                {/* Render dynamic description hoặc giữ nguyên nội dung cũ */}
-                {product.description && (
-                  <div className="contents widget-content">
-                    <h4 className="_9cfu">Performance Features:</h4>
-                    <div className="inner-content" dangerouslySetInnerHTML={{ __html: product.description }} />
-                  </div>
-                )}
+
               </div>
             </div>
+              </Col>
+            </Row>
           </div>
           )}
         </div>
