@@ -10,7 +10,6 @@ import {
   Pagination,
   Row,
   Slider,
-  Spin,
 } from "antd";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -18,6 +17,8 @@ import { Link, useParams } from "react-router-dom";
 import { categoryService, productService } from "../services/apiService";
 import apiService from "../services/apiService";
 import { setProductCategory } from "../redux/category";
+import ProductCard from "../components/atoms/ProductCard";
+import LoadingSpinner from "../components/atoms/LoadingSpinner";
 
 function Category() {
   // Bỏ cmt nếu bạn sử dụng phần này
@@ -331,9 +332,7 @@ function Category() {
                   <h2 className="_3rac">{productCategory?.categoryName || "Products"}</h2>
                 </div>
                 {loading ? (
-                  <div style={{ textAlign: "center", padding: "60px 0" }}>
-                    <Spin size="large" />
-                  </div>
+                  <LoadingSpinner />
                 ) : products.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "60px 0" }}>
                     <p>No products found in this category.</p>
@@ -342,26 +341,7 @@ function Category() {
                   <>
                 <div className="products-grid">
                   {products.map((product) => (
-                    <div key={product.id} className="product-item">
-                      <div className="product-image">
-                        <Link to={`/product/${product.slug}`}>
-                          <img
-                            src={product.thumb}
-                            alt={product.prodName}
-                          />
-                        </Link>
-                      </div>
-                      <div className="product-info">
-                        <h4 className="product-name">
-                          <Link to={`/product/${product.slug}`}>
-                            {product.prodName}
-                          </Link>
-                        </h4>
-                        <p className="product-sku">
-                          SKU: <span>{product.sku}</span>
-                        </p>
-                      </div>
-                    </div>
+                    <ProductCard key={product.id} product={product} />
                   ))}                  
                 </div>
 
