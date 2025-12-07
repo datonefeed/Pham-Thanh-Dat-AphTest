@@ -10,11 +10,12 @@ import AllProduct from "../pages/all-product";
 import Category from "../pages/category";
 import SearchScreen from "../pages/search";
 import ProductDetail from "../pages/product-details";
+import ErrorPage from "../pages/ErrorPage";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<App />}>
-      <Route path="/" element={<Main />}>
+      <Route path="/" element={<Main />} errorElement ={<ErrorPage />}>
         <Route path="all-product" element={<AllProduct />} />
         <Route path="category/:url" element={<Category />} />
         <Route path="search" element={<SearchScreen />} />
