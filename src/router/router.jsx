@@ -10,7 +10,7 @@ import AllProduct from "../pages/all-product";
 import Category from "../pages/category";
 import SearchScreen from "../pages/search";
 import ProductDetail from "../pages/product-details";
-import ErrorPage from "../pages/ErrorPage";
+import ErrorPage from "../pages/error-page";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
